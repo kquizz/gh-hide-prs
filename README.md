@@ -16,7 +16,21 @@ it rewrites the repo **Pull requests** tab so that:
    filtered pulls page in the background (same-origin, using your logged-in
    session) and swaps the count in.
 
-Any PR you want out of the way just needs the `hidden` label.
+Any PR you want out of the way just needs one of your hidden labels (default:
+`hidden`).
+
+## Settings
+
+Click the extension's toolbar icon for a popup where you can:
+
+- **Enabled** — turn the whole thing on/off. Disabling instantly restores
+  GitHub's native link and count (no page reload needed).
+- **Hide draft PRs** — also exclude drafts (adds `draft:false` to the filter).
+- **Hide PRs with these labels** — add/remove any labels you want excluded.
+  Defaults to `hidden`; add as many as you like (labels with spaces are fine).
+
+Settings save automatically and sync across your Chrome profiles via
+`chrome.storage.sync`.
 
 ## Install (for teammates)
 
@@ -38,24 +52,17 @@ Unpacked extensions don't auto-update. When there's a new version:
 1. `git pull` (or re-download the ZIP).
 2. Go to `chrome://extensions` and click the reload ↻ icon on the extension.
 
-## Configuration
+## Which repos it applies to
 
-Edit `content.js`:
-
-- `REPOS` — the `owner/repo` slugs to apply to.
-- `FILTER_QUERY` — the encoded `q=` filter string (spaces as `+`, `:` as `%3A`).
-
-The content script is matched to `https://github.com/optimumenergyco/*` (see
-`manifest.json`) and additionally gates in JS to the repos in `REPOS`, so other
-org repos are untouched. To cover a repo outside that org:
+Labels and drafts are configured in the popup, but the *repos* are fixed in
+code. The content script is matched to `https://github.com/optimumenergyco/*`
+(see `manifest.json`) and gated in JS to the repos in `REPOS` (`content.js`), so
+other org repos are untouched. To cover a repo outside that org:
 
 1. Add its match pattern to `content_scripts[0].matches` in `manifest.json`
    (e.g. `"https://github.com/your-org/*"`).
 2. Add its `owner/repo` slug to `REPOS` in `content.js`.
 3. Reload the extension.
-
-To hide a different label, change `hidden` in `FILTER_QUERY` — e.g.
-`-label:wip` becomes `q=is%3Aopen+is%3Apr+-label%3Awip`.
 
 ## How it works
 

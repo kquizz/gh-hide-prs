@@ -1,8 +1,13 @@
 {
   "manifest_version": 3,
   "name": "GitHub Hidden-PR Filter",
-  "version": "1.0.0",
-  "description": "Rewrites the repo Pull requests tab (link + count) to exclude PRs labeled 'hidden' on selected optimumenergyco repos.",
+  "version": "1.1.0",
+  "description": "Rewrites the repo Pull requests tab (link + count) to hide PRs by label or draft status on selected optimumenergyco repos.",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "GitHub Hidden-PR Filter settings"
+  },
   "content_scripts": [
     {
       "matches": [
