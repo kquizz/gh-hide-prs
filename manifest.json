@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Hidden-PR Filter",
+  "version": "1.0.0",
+  "description": "Rewrites the repo Pull requests tab (link + count) to exclude PRs labeled 'hidden' on selected optimumenergyco repos.",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://github.com/optimumenergyco/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
