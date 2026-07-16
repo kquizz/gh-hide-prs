@@ -5,13 +5,11 @@ const DEFAULTS = {
   enabled: true,
   hideLabels: ['hidden'],
   hideDrafts: false,
+  hideAuthors: [],
 }
 
 const enabledEl = document.getElementById('enabled')
 const hideDraftsEl = document.getElementById('hideDrafts')
-const labelsEl = document.getElementById('labels')
-const labelInput = document.getElementById('labelInput')
-const addLabelBtn = document.getElementById('addLabel')
 
 let state = { ...DEFAULTS }
 
@@ -24,44 +22,74 @@ function renderEnabled() {
   document.body.classList.toggle('off', !state.enabled)
 }
 
-function renderLabels() {
-  labelsEl.textContent = ''
-  if (state.hideLabels.length === 0) {
-    const empty = document.createElement('span')
-    empty.className = 'empty'
-    empty.textContent = 'No labels — nothing is hidden by label.'
-    labelsEl.appendChild(empty)
-    return
+// A reusable chip-list editor bound to one array field in `state`.
+function makeListEditor({ key, containerId, inputId, buttonId, emptyText }) {
+  const container = document.getElementById(containerId)
+  const input = document.getElementById(inputId)
+  const button = document.getElementById(buttonId)
+
+  function render() {
+    container.textContent = ''
+    if (state[key].length === 0) {
+      const empty = document.createElement('span')
+      empty.className = 'empty'
+      empty.textContent = emptyText
+      container.appendChild(empty)
+      return
+    }
+    for (const value of state[key]) {
+      const chip = document.createElement('span')
+      chip.className = 'chip'
+      const text = document.createElement('span')
+      text.textContent = value
+      const remove = document.createElement('button')
+      remove.type = 'button'
+      remove.textContent = '×'
+      remove.title = `Remove "${value}"`
+      remove.addEventListener('click', () => {
+        state[key] = state[key].filter((v) => v !== value)
+        render()
+        save()
+      })
+      chip.append(text, remove)
+      container.appendChild(chip)
+    }
   }
-  for (const label of state.hideLabels) {
-    const chip = document.createElement('span')
-    chip.className = 'chip'
-    const text = document.createElement('span')
-    text.textContent = label
-    const remove = document.createElement('button')
-    remove.type = 'button'
-    remove.textContent = '×'
-    remove.title = `Remove "${label}"`
-    remove.addEventListener('click', () => {
-      state.hideLabels = state.hideLabels.filter((l) => l !== label)
-      renderLabels()
-      save()
-    })
-    chip.append(text, remove)
-    labelsEl.appendChild(chip)
+
+  function add() {
+    const value = input.value.trim()
+    input.value = ''
+    input.focus()
+    if (!value) return
+    if (state[key].some((v) => v.toLowerCase() === value.toLowerCase())) return
+    state[key] = [...state[key], value]
+    render()
+    save()
   }
+
+  button.addEventListener('click', add)
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') add()
+  })
+
+  return { render }
 }
 
-function addLabel() {
-  const value = labelInput.value.trim()
-  labelInput.value = ''
-  labelInput.focus()
-  if (!value) return
-  if (state.hideLabels.some((l) => l.toLowerCase() === value.toLowerCase())) return
-  state.hideLabels = [...state.hideLabels, value]
-  renderLabels()
-  save()
-}
+const labels = makeListEditor({
+  key: 'hideLabels',
+  containerId: 'labels',
+  inputId: 'labelInput',
+  buttonId: 'addLabel',
+  emptyText: 'No labels — nothing is hidden by label.',
+})
+
+const authors = makeListEditor({
+  key: 'hideAuthors',
+  containerId: 'authors',
+  inputId: 'authorInput',
+  buttonId: 'addAuthor',
+  emptyText: 'No authors — nothing is hidden by author.',
+})
 
 enabledEl.addEventListener('change', () => {
   state.enabled = enabledEl.checked
@@ -74,14 +102,10 @@ hideDraftsEl.addEventListener('change', () => {
   save()
 })
 
-addLabelBtn.addEventListener('click', addLabel)
-labelInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addLabel()
-})
-
 chrome.storage.sync.get(DEFAULTS, (stored) => {
   state = { ...DEFAULTS, ...stored }
   renderEnabled()
   hideDraftsEl.checked = state.hideDrafts
-  renderLabels()
+  labels.render()
+  authors.render()
 })
