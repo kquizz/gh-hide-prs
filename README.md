@@ -35,12 +35,14 @@ Settings save automatically and sync across your Chrome profiles via
 
 ## Sidebar shortcuts
 
-On the Pull requests list, six shortcuts are injected into the left sidebar
+On the Pull requests list, seven shortcuts are injected into the left sidebar
 next to GitHub's own "Authored by me" / "Assigned to me" / etc., each with an
 icon and a live count:
 
 - **My Waiting for Review** — your open, non-draft PRs not yet approved or
   changes-requested.
+- **My Needs Review** — your open, non-draft PRs labeled ready for review,
+  not yet approved or changes-requested.
 - **My Drafts** — your open draft PRs.
 - **Ready** — same as the Pull requests tab: your label/author/draft settings.
 - **Needs Review** — open, non-draft PRs by others labeled ready for review,
@@ -49,7 +51,7 @@ icon and a live count:
   changes requested.
 - **Needs Merge** — your open, non-draft, approved PRs.
 
-These six are hardcoded (not currently configurable from the popup). If you
+These seven are hardcoded (not currently configurable from the popup). If you
 collapse GitHub's sidebar to its icon-only rail, the shortcuts collapse right
 along with it — icon on the left, count next to it — instead of hiding the
 number or wrapping the label.
