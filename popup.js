@@ -6,20 +6,10 @@ const DEFAULTS = {
   hideLabels: ['hidden'],
   hideDrafts: false,
   hideAuthors: [],
-  activeQuery: 'custom',
 }
-
-// Kept in sync with QUERY_PRESETS in content.js — this list only needs the
-// labels/values for the dropdown, not the actual query strings.
-const QUERY_PRESET_OPTIONS = [
-  { value: 'needsReview', label: 'Needs Review' },
-  { value: 'needsWork', label: 'Needs Work' },
-  { value: 'needsMerge', label: 'Needs Merge' },
-]
 
 const enabledEl = document.getElementById('enabled')
 const hideDraftsEl = document.getElementById('hideDrafts')
-const activeQueryEl = document.getElementById('activeQuery')
 
 let state = { ...DEFAULTS }
 
@@ -30,10 +20,6 @@ function save() {
 function renderEnabled() {
   enabledEl.checked = state.enabled
   document.body.classList.toggle('off', !state.enabled)
-}
-
-function renderActiveQuery() {
-  activeQueryEl.value = state.activeQuery
 }
 
 // A reusable chip-list editor bound to one array field in `state`.
@@ -116,23 +102,9 @@ hideDraftsEl.addEventListener('change', () => {
   save()
 })
 
-for (const { value, label } of QUERY_PRESET_OPTIONS) {
-  const option = document.createElement('option')
-  option.value = value
-  option.textContent = label
-  activeQueryEl.appendChild(option)
-}
-
-activeQueryEl.addEventListener('change', () => {
-  state.activeQuery = activeQueryEl.value
-  renderActiveQuery()
-  save()
-})
-
 chrome.storage.sync.get(DEFAULTS, (stored) => {
   state = { ...DEFAULTS, ...stored }
   renderEnabled()
-  renderActiveQuery()
   hideDraftsEl.checked = state.hideDrafts
   labels.render()
   authors.render()

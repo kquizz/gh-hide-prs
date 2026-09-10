@@ -29,17 +29,23 @@ Click the extension's toolbar icon for a popup where you can:
   that label instead.
 - **Hide items from these authors** — add/remove GitHub usernames to exclude.
   Empty by default.
-- **Pull requests query** — swap the Pull requests tab to one of three
-  hardcoded presets instead of the label/author builder above (the Issues tab
-  and the builder settings are unaffected either way):
-  - **Needs Review** — open, non-draft PRs by others labeled ready for review.
-  - **Needs Work** — your open, non-draft PRs labeled dev-work-needed or with
-    changes requested.
-  - **Needs Merge** — your open, non-draft, approved PRs.
-  - **Custom** — the default; uses the label/author/draft settings above.
 
 Settings save automatically and sync across your Chrome profiles via
 `chrome.storage.sync`.
+
+## Sidebar shortcuts
+
+On the Pull requests list, four shortcuts are injected into the left sidebar
+next to GitHub's own "Authored by me" / "Assigned to me" / etc., each showing
+a live count:
+
+- **Normal** — same as the Pull requests tab: your label/author/draft settings.
+- **Needs Review** — open, non-draft PRs by others labeled ready for review.
+- **Needs Work** — your open, non-draft PRs labeled dev-work-needed or with
+  changes requested.
+- **Needs Merge** — your open, non-draft, approved PRs.
+
+These four are hardcoded (not currently configurable from the popup).
 
 ## Install (for teammates)
 

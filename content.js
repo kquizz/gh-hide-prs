@@ -2,7 +2,10 @@
 // On any GitHub repo, point the "Pull requests" and "Issues" tabs at a filter
 // that hides items by label, author, or (PRs only) draft status, and replace
 // each count badge with the accurate filtered count plus a shown/hidden
-// tooltip. Settings live in chrome.storage.sync.
+// tooltip. On the Pull requests list, also injects a few hardcoded query
+// shortcuts (with live counts) into the left sidebar, alongside GitHub's own
+// "Authored by me" / "Assigned to me" links. Settings live in
+// chrome.storage.sync.
 
 (() => {
   'use strict'
@@ -13,26 +16,32 @@
     hideLabels: ['hidden'],
     hideDrafts: false,
     hideAuthors: [],
-    activeQuery: 'custom',
   }
 
-  // Hardcoded PR-tab query presets, selectable from the popup. Each is a
-  // complete search query — picking one bypasses the label/author/draft
-  // builder above entirely. PR-only: the Issues tab always uses the builder.
-  const QUERY_PRESETS = {
-    needsReview: {
+  // Hardcoded PR-tab query shortcuts injected into the Pull requests sidebar.
+  // "Normal" reuses the label/author/draft builder below; the rest are fixed
+  // search queries.
+  const SIDEBAR_PRESETS = [
+    { key: 'normal', label: 'Normal', query: null },
+    {
+      key: 'needsReview',
       label: 'Needs Review',
       query: 'is:open is:pr -label:hidden label:"🤖 Ready for Human Review" draft:false -author:@me',
     },
-    needsWork: {
+    {
+      key: 'needsWork',
       label: 'Needs Work',
       query: 'is:open is:pr -label:hidden draft:false (label:"🤖 Dev Work Needed" OR review:changes_requested) author:@me',
     },
-    needsMerge: {
+    {
+      key: 'needsMerge',
       label: 'Needs Merge',
       query: 'is:open is:pr -label:hidden draft:false review:approved author:@me',
     },
-  }
+  ]
+
+  // Marks sidebar <li>s we injected, so we can find and clear them cleanly.
+  const SIDEBAR_MARKER = 'data-ghp-hide-prs'
 
   // The two repo nav tabs we rewrite. `is:pr`/`is:issue` scope the count query;
   // drafts only exist for PRs.
@@ -75,13 +84,14 @@
     return { owner: parts[0], repo: parts[1] }
   }
 
+  // Encode a raw search query into a GitHub-style "q=" string (GitHub uses
+  // "+" for spaces rather than the default "%20").
+  function encodeQuery(query) {
+    return 'q=' + encodeURIComponent(query).replace(/%20/g, '+')
+  }
+
   // Build the encoded ?q= filter from current settings for a given tab.
   function buildQuery(tab) {
-    const preset = tab.seg === 'pulls' ? QUERY_PRESETS[settings.activeQuery] : null
-    if (preset) {
-      return 'q=' + encodeURIComponent(preset.query).replace(/%20/g, '+')
-    }
-
     const parts = ['is:open', tab.type]
     for (const raw of settings.hideLabels) {
       let label = String(raw).trim()
@@ -99,8 +109,7 @@
       if (author) parts.push(`-author:${author}`)
     }
     if (tab.allowDrafts && settings.hideDrafts) parts.push('draft:false')
-    // Encode, then match GitHub's own style of "+" for spaces.
-    return 'q=' + encodeURIComponent(parts.join(' ')).replace(/%20/g, '+')
+    return encodeQuery(parts.join(' '))
   }
 
   function tabHref(owner, repo, tab) {
@@ -241,6 +250,99 @@
     else fetchCount(href)
   }
 
+  // The left sidebar's "Authored by me" / "Assigned to me" / etc. list —
+  // we append our shortcuts to the same <ul>.
+  function findSidebarList() {
+    const anchor = [...document.querySelectorAll('a')].find((a) => {
+      const text = a.textContent.trim()
+      return text === 'Authored by me' || text === 'Assigned to me' || text === 'Involves me'
+    })
+    return anchor ? anchor.closest('ul') : null
+  }
+
+  function presetHref(owner, repo, preset) {
+    const q = preset.query ? encodeQuery(preset.query) : buildQuery(TABS[0])
+    return `/${owner}/${repo}/pulls?${q}`
+  }
+
+  function clearSidebar() {
+    document.querySelectorAll(`li[${SIDEBAR_MARKER}]`).forEach((li) => li.remove())
+  }
+
+  function injectSidebarStyle() {
+    if (document.getElementById('ghp-hide-prs-style')) return
+    const style = document.createElement('style')
+    style.id = 'ghp-hide-prs-style'
+    style.textContent = `
+      .ghp-sidebar-link:hover { background: var(--bgColor-neutral-muted, rgba(110,118,129,.15)); }
+    `
+    document.head.appendChild(style)
+  }
+
+  function buildSidebarItem(key) {
+    const li = document.createElement('li')
+    li.setAttribute(SIDEBAR_MARKER, key)
+
+    const a = document.createElement('a')
+    a.className = 'ghp-sidebar-link'
+    a.style.cssText =
+      'display: flex; align-items: center; justify-content: space-between; ' +
+      'gap: 8px; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; ' +
+      'text-decoration: none; color: inherit; font-size: 14px;'
+
+    const text = document.createElement('span')
+    text.className = 'ghp-sidebar-link-text'
+
+    const count = document.createElement('span')
+    count.className = 'ghp-sidebar-link-count'
+    count.style.cssText =
+      'background: var(--bgColor-neutral-muted, rgba(110,118,129,.4)); ' +
+      'color: var(--fgColor-muted, inherit); border-radius: 999px; ' +
+      'padding: 0 8px; font-size: 12px; line-height: 18px; min-width: 20px; text-align: center;'
+
+    a.append(text, count)
+    li.appendChild(a)
+    return li
+  }
+
+  // Reconciles the sidebar shortcut list against SIDEBAR_PRESETS, reusing
+  // existing nodes and only touching the DOM when a value actually changed —
+  // otherwise our own writes would re-trigger the MutationObserver forever.
+  function renderSidebar(owner, repo) {
+    if (!settings.enabled) {
+      clearSidebar()
+      return
+    }
+    const list = findSidebarList()
+    if (!list) {
+      clearSidebar()
+      return
+    }
+
+    injectSidebarStyle()
+
+    for (const preset of SIDEBAR_PRESETS) {
+      const href = presetHref(owner, repo, preset)
+      let li = list.querySelector(`:scope > li[${SIDEBAR_MARKER}="${preset.key}"]`)
+      if (!li) {
+        li = buildSidebarItem(preset.key)
+        list.appendChild(li)
+      }
+
+      const a = li.querySelector('a')
+      const text = a.querySelector('.ghp-sidebar-link-text')
+      const count = a.querySelector('.ghp-sidebar-link-count')
+
+      if (a.getAttribute('href') !== href) a.setAttribute('href', href)
+      if (text.textContent !== preset.label) text.textContent = preset.label
+
+      const cached = countCache.get(href)
+      const countText = typeof cached === 'number' ? cached.toLocaleString('en-US') : '…'
+      if (count.textContent !== countText) count.textContent = countText
+      if (typeof cached !== 'number') fetchCount(href)
+    }
+  }
+
   function apply() {
     const repo = currentRepo()
     if (!repo) return
@@ -251,6 +353,11 @@
       if (settings.enabled) applyTab(repo.owner, repo.repo, tab, el)
       else restoreTab(el)
     }
+
+    const parts = location.pathname.split('/').filter(Boolean)
+    const onPullsList = parts.length === 3 && parts[2] === 'pulls'
+    if (onPullsList) renderSidebar(repo.owner, repo.repo)
+    else clearSidebar()
   }
 
   // Re-apply on SPA navigations and React re-renders. Our writes are no-ops when
