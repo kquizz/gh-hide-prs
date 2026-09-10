@@ -36,16 +36,20 @@ Settings save automatically and sync across your Chrome profiles via
 ## Sidebar shortcuts
 
 On the Pull requests list, four shortcuts are injected into the left sidebar
-next to GitHub's own "Authored by me" / "Assigned to me" / etc., each showing
-a live count:
+next to GitHub's own "Authored by me" / "Assigned to me" / etc., each with an
+icon and a live count:
 
 - **Normal** — same as the Pull requests tab: your label/author/draft settings.
-- **Needs Review** — open, non-draft PRs by others labeled ready for review.
+- **Needs Review** — open, non-draft PRs by others labeled ready for review,
+  not yet approved or changes-requested.
 - **Needs Work** — your open, non-draft PRs labeled dev-work-needed or with
   changes requested.
 - **Needs Merge** — your open, non-draft, approved PRs.
 
-These four are hardcoded (not currently configurable from the popup).
+These four are hardcoded (not currently configurable from the popup). If you
+collapse GitHub's sidebar to its icon-only rail, the shortcuts collapse right
+along with it — icon on the left, count next to it — instead of hiding the
+number or wrapping the label.
 
 ## Install (for teammates)
 
@@ -75,12 +79,20 @@ Unpacked extensions don't auto-update. When there's a new version:
 - **Link rewrite** — finds the repo-scoped tab (never the global app-header
   button) and sets its `href` to the filtered query.
 - **Count** — background-fetches the filtered list and reads the total, which
-  honors every qualifier. It handles both the classic server-rendered list
-  (an "N Open" toggle) and the newer React Issues UI (count embedded as JSON).
+  honors every qualifier. GitHub has served this count three different ways
+  over time and the extension checks for all of them in order: the current
+  Primer "SectionFilterLink" nav (a `CounterLabel` span inside the Open filter
+  tab), the classic server-rendered list (an "N Open" toggle), and the older
+  React Issues UI (count embedded as JSON).
 - **Tooltip** — compares the filtered count against GitHub's native total to
   show how many were hidden.
-- **Resilience** — supports both the Primer React header (`CounterLabel`) and
-  the classic nav. A `MutationObserver` re-applies after Turbo/PJAX navigations
+- **Sidebar shortcuts** — found by locating GitHub's own "Authored by me" /
+  "Assigned to me" / "Involves me" links and appending to their `<ul>`.
+  Collapse behavior keys off the `data-expanded="false"` attribute GitHub sets
+  on the sidebar `<aside>`, via plain CSS attribute selectors — so it reacts
+  instantly to the collapse toggle without needing the `MutationObserver`
+  (which only watches for added/removed nodes, not attribute changes).
+- **Resilience** — a `MutationObserver` re-applies after Turbo/PJAX navigations
   and React re-renders. Writes are no-ops when values already match, so it
   never loops.
 - **Fail-safe** — if the background fetch fails (network or markup change), the
