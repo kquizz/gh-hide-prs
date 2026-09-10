@@ -20,23 +20,32 @@
 
   // Hardcoded PR-tab query shortcuts injected into the Pull requests sidebar.
   // "Normal" reuses the label/author/draft builder below; the rest are fixed
-  // search queries.
+  // search queries. `icon` is shown when the sidebar is collapsed to its
+  // icon-only rail, where there's no room for the label text.
   const SIDEBAR_PRESETS = [
-    { key: 'normal', label: 'Normal', query: null },
+    {
+      key: 'normal',
+      label: 'Normal',
+      query: null,
+      icon: '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>',
+    },
     {
       key: 'needsReview',
       label: 'Needs Review',
       query: 'is:open is:pr -label:hidden label:"🤖 Ready for Human Review" draft:false -author:@me',
+      icon: '<path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z"/><circle cx="8" cy="8" r="2"/>',
     },
     {
       key: 'needsWork',
       label: 'Needs Work',
       query: 'is:open is:pr -label:hidden draft:false (label:"🤖 Dev Work Needed" OR review:changes_requested) author:@me',
+      icon: '<path stroke-linejoin="round" d="M8 1.5 14.5 13.5h-13Z"/><line x1="8" y1="6" x2="8" y2="9.5"/><circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/>',
     },
     {
       key: 'needsMerge',
       label: 'Needs Merge',
       query: 'is:open is:pr -label:hidden draft:false review:approved author:@me',
+      icon: '<path stroke-linejoin="round" d="M3 8.5 6.5 12 13 4"/>',
     },
   ]
 
@@ -269,17 +278,28 @@
     document.querySelectorAll(`li[${SIDEBAR_MARKER}]`).forEach((li) => li.remove())
   }
 
+  // GitHub marks its collapsed icon-only sidebar rail with
+  // data-expanded="false" on the <aside> ancestor. These selectors key off
+  // that attribute directly so our items collapse/expand in lockstep with
+  // GitHub's own — instantly, via plain CSS, with no JS involved (our
+  // MutationObserver doesn't watch attribute changes, so this couldn't
+  // otherwise react to the toggle).
   function injectSidebarStyle() {
     if (document.getElementById('ghp-hide-prs-style')) return
     const style = document.createElement('style')
     style.id = 'ghp-hide-prs-style'
     style.textContent = `
       .ghp-sidebar-link:hover { background: var(--bgColor-neutral-muted, rgba(110,118,129,.15)); }
+      .ghp-sidebar-link-icon { flex: 0 0 auto; display: none; align-items: center; justify-content: center; }
+      [data-expanded="false"] .ghp-sidebar-link { justify-content: center; padding: 6px; }
+      [data-expanded="false"] .ghp-sidebar-link-icon { display: flex; }
+      [data-expanded="false"] .ghp-sidebar-link-text,
+      [data-expanded="false"] .ghp-sidebar-link-count { display: none; }
     `
     document.head.appendChild(style)
   }
 
-  function buildSidebarItem(key) {
+  function buildSidebarItem(key, iconPath) {
     const li = document.createElement('li')
     li.setAttribute(SIDEBAR_MARKER, key)
 
@@ -289,6 +309,12 @@
       'display: flex; align-items: center; justify-content: space-between; ' +
       'gap: 8px; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; ' +
       'text-decoration: none; color: inherit; font-size: 14px;'
+
+    const icon = document.createElement('span')
+    icon.className = 'ghp-sidebar-link-icon'
+    icon.innerHTML =
+      `<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" ` +
+      `stroke-width="1.5" stroke-linecap="round">${iconPath}</svg>`
 
     const text = document.createElement('span')
     text.className = 'ghp-sidebar-link-text'
@@ -300,7 +326,7 @@
       'color: var(--fgColor-muted, inherit); border-radius: 999px; ' +
       'padding: 0 8px; font-size: 12px; line-height: 18px; min-width: 20px; text-align: center;'
 
-    a.append(text, count)
+    a.append(icon, text, count)
     li.appendChild(a)
     return li
   }
@@ -325,7 +351,7 @@
       const href = presetHref(owner, repo, preset)
       let li = list.querySelector(`:scope > li[${SIDEBAR_MARKER}="${preset.key}"]`)
       if (!li) {
-        li = buildSidebarItem(preset.key)
+        li = buildSidebarItem(preset.key, preset.icon)
         list.appendChild(li)
       }
 
@@ -340,6 +366,9 @@
       const countText = typeof cached === 'number' ? cached.toLocaleString('en-US') : '…'
       if (count.textContent !== countText) count.textContent = countText
       if (typeof cached !== 'number') fetchCount(href)
+
+      const title = `${preset.label} — ${countText}`
+      if (a.getAttribute('title') !== title) a.setAttribute('title', title)
     }
   }
 
