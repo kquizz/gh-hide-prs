@@ -39,9 +39,9 @@ On the Pull requests list, six shortcuts are injected into the left sidebar
 next to GitHub's own "Authored by me" / "Assigned to me" / etc., each with an
 icon and a live count:
 
-- **Waiting for Review** — your open, non-draft PRs not yet approved or
+- **My Waiting for Review** — your open, non-draft PRs not yet approved or
   changes-requested.
-- **Drafts** — your open draft PRs.
+- **My Drafts** — your open draft PRs.
 - **Ready** — same as the Pull requests tab: your label/author/draft settings.
 - **Needs Review** — open, non-draft PRs by others labeled ready for review,
   not yet approved or changes-requested.

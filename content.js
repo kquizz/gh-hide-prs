@@ -25,13 +25,13 @@
   const SIDEBAR_PRESETS = [
     {
       key: 'waitingForReview',
-      label: 'Waiting for Review',
+      label: 'My Waiting for Review',
       query: 'is:open is:pr -label:hidden draft:false author:@me -review:approved -review:changes_requested',
       icon: '<circle cx="8" cy="8" r="6.5"/><line x1="8" y1="8" x2="8" y2="4.5"/><line x1="8" y1="8" x2="10.5" y2="9.5"/>',
     },
     {
       key: 'drafts',
-      label: 'Drafts',
+      label: 'My Drafts',
       query: 'is:open is:pr -label:hidden draft:true author:@me',
       icon: '<path stroke-linejoin="round" d="M3 13.5V11l7-7 2.5 2.5-7 7H3Z"/><line x1="9" y1="5" x2="11.5" y2="7.5"/>',
     },
