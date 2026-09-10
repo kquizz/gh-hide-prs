@@ -42,7 +42,7 @@ icon and a live count:
 - **Waiting for Review** — your open, non-draft PRs not yet approved or
   changes-requested.
 - **Drafts** — your open draft PRs.
-- **Normal** — same as the Pull requests tab: your label/author/draft settings.
+- **Ready** — same as the Pull requests tab: your label/author/draft settings.
 - **Needs Review** — open, non-draft PRs by others labeled ready for review,
   not yet approved or changes-requested.
 - **Needs Work** — your open, non-draft PRs labeled dev-work-needed or with

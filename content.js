@@ -19,7 +19,7 @@
   }
 
   // Hardcoded PR-tab query shortcuts injected into the Pull requests sidebar.
-  // "Normal" reuses the label/author/draft builder below; the rest are fixed
+  // "Ready" reuses the label/author/draft builder below; the rest are fixed
   // search queries. `icon` is shown when the sidebar is collapsed to its
   // icon-only rail, where there's no room for the label text.
   const SIDEBAR_PRESETS = [
@@ -37,7 +37,7 @@
     },
     {
       key: 'normal',
-      label: 'Normal',
+      label: 'Ready',
       query: null,
       icon: '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>',
     },
