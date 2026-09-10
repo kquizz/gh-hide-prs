@@ -291,18 +291,21 @@
     style.textContent = `
       .ghp-sidebar-link:hover { background: var(--bgColor-neutral-muted, rgba(110,118,129,.15)); }
       .ghp-sidebar-link-icon { flex: 0 0 auto; display: none; align-items: center; justify-content: center; }
+      /* !important below: the anchor/count base styles are set inline
+         (element.style.cssText) in buildSidebarItem, which otherwise always
+         wins over an external stylesheet regardless of selector specificity. */
       [data-expanded="false"] .ghp-sidebar-link {
-        position: relative; justify-content: center; width: 32px; padding: 6px 0;
+        flex-direction: column !important; justify-content: center !important;
+        gap: 1px; width: 32px; padding: 4px 0 !important;
       }
       [data-expanded="false"] .ghp-sidebar-link-icon { display: flex; }
       [data-expanded="false"] .ghp-sidebar-link-text { display: none; }
-      /* Collapsed rail: keep the count visible as a small corner badge on
-         the icon instead of hiding it — the whole point of these shortcuts
-         is seeing the numbers at a glance. */
+      /* Collapsed rail: keep the count visible (stacked under the icon)
+         instead of hiding it — the whole point of these shortcuts is
+         seeing the numbers at a glance. */
       [data-expanded="false"] .ghp-sidebar-link-count {
-        position: absolute; bottom: 2px; right: 2px;
-        min-width: 14px; height: 14px; line-height: 14px;
-        padding: 0 3px; font-size: 9px;
+        background: none !important; color: var(--fgColor-muted, inherit) !important;
+        min-width: 0 !important; padding: 0 !important; font-size: 10px; line-height: 1;
       }
     `
     document.head.appendChild(style)
