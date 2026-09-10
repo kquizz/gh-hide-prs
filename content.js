@@ -13,6 +13,25 @@
     hideLabels: ['hidden'],
     hideDrafts: false,
     hideAuthors: [],
+    activeQuery: 'custom',
+  }
+
+  // Hardcoded PR-tab query presets, selectable from the popup. Each is a
+  // complete search query — picking one bypasses the label/author/draft
+  // builder above entirely. PR-only: the Issues tab always uses the builder.
+  const QUERY_PRESETS = {
+    needsReview: {
+      label: 'Needs Review',
+      query: 'is:open is:pr -label:hidden label:"🤖 Ready for Human Review" draft:false -author:@me',
+    },
+    needsWork: {
+      label: 'Needs Work',
+      query: 'is:open is:pr -label:hidden draft:false (label:"🤖 Dev Work Needed" OR review:changes_requested) author:@me',
+    },
+    needsMerge: {
+      label: 'Needs Merge',
+      query: 'is:open is:pr -label:hidden draft:false review:approved author:@me',
+    },
   }
 
   // The two repo nav tabs we rewrite. `is:pr`/`is:issue` scope the count query;
@@ -58,6 +77,11 @@
 
   // Build the encoded ?q= filter from current settings for a given tab.
   function buildQuery(tab) {
+    const preset = tab.seg === 'pulls' ? QUERY_PRESETS[settings.activeQuery] : null
+    if (preset) {
+      return 'q=' + encodeURIComponent(preset.query).replace(/%20/g, '+')
+    }
+
     const parts = ['is:open', tab.type]
     for (const raw of settings.hideLabels) {
       let label = String(raw).trim()

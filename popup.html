@@ -39,6 +39,10 @@
     .add button:hover { background: #6e768144; }
     .empty { color: #888; font-size: 12px; font-style: italic; }
     body.off .dependent { opacity: 0.45; pointer-events: none; }
+    select#activeQuery {
+      width: 100%; padding: 5px 8px; border: 1px solid #8886; border-radius: 6px;
+      background: transparent; color: inherit; font: inherit;
+    }
   </style>
 </head>
 <body>
@@ -53,6 +57,17 @@
   <hr />
 
   <div class="dependent">
+    <p class="section-title" style="margin-top: 0;">Pull requests query</p>
+    <select id="activeQuery">
+      <option value="custom">Custom (labels/authors below)</option>
+    </select>
+    <p class="sub" style="margin: 6px 0 0;">
+      A preset replaces the Pull requests tab entirely. The Issues tab and the
+      builder below always use your label/author settings.
+    </p>
+
+    <hr />
+
     <div class="row">
       <input type="checkbox" id="hideDrafts" />
       <label for="hideDrafts">Hide draft PRs</label>
