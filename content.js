@@ -32,7 +32,7 @@
     {
       key: 'needsReview',
       label: 'Needs Review',
-      query: 'is:open is:pr -label:hidden label:"🤖 Ready for Human Review" draft:false -author:@me',
+      query: 'is:open is:pr -label:hidden label:"🤖 Ready for Human Review" draft:false -author:@me -review:approved -review:changes_requested',
       icon: '<path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z"/><circle cx="8" cy="8" r="2"/>',
     },
     {
