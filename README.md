@@ -24,7 +24,9 @@ Click the extension's toolbar icon for a popup where you can:
   GitHub's native link and count (no page reload needed).
 - **Hide draft PRs** — also exclude drafts (adds `draft:false`; PRs only).
 - **Hide items with these labels** — add/remove any labels to exclude. Defaults
-  to `hidden`; add as many as you like (labels with spaces are fine).
+  to `hidden`; add as many as you like (labels with spaces are fine). Prefix a
+  label with `!` (e.g. `!ready`) to invert it — hide items that *don't* have
+  that label instead.
 - **Hide items from these authors** — add/remove GitHub usernames to exclude.
   Empty by default.
 

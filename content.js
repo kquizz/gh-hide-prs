@@ -60,8 +60,15 @@
   function buildQuery(tab) {
     const parts = ['is:open', tab.type]
     for (const raw of settings.hideLabels) {
-      const label = String(raw).trim()
-      if (label) parts.push(`-label:${/\s/.test(label) ? `"${label}"` : label}`)
+      let label = String(raw).trim()
+      if (!label) continue
+      // A "!label" entry means "hide items that DON'T have this label" —
+      // flip to a positive `label:` filter instead of the usual `-label:`.
+      const negate = label.startsWith('!')
+      if (negate) label = label.slice(1).trim()
+      if (!label) continue
+      const quoted = /\s/.test(label) ? `"${label}"` : label
+      parts.push(negate ? `label:${quoted}` : `-label:${quoted}`)
     }
     for (const raw of settings.hideAuthors) {
       const author = String(raw).trim().replace(/^@/, '')
@@ -93,11 +100,25 @@
   }
 
   // Extract the filtered open count from a fetched pulls/issues page. GitHub
-  // serves two shapes: the classic server-rendered list (an "N Open" toggle)
-  // and the newer React Issues UI (count embedded as JSON "issueCount":N).
+  // has served this in three different shapes over time: the current Primer
+  // "SectionFilterLink" nav (CounterLabel span), the classic server-rendered
+  // list (an "N Open" toggle), and the React Issues UI (JSON "issueCount":N).
   function parseOpenCount(html) {
-    // Strategy 1: classic "N Open" toggle.
     const doc = new DOMParser().parseFromString(html, 'text/html')
+
+    // Strategy 1: newer Primer "SectionFilterLink" nav (Open/Closed tabs),
+    // e.g. an "Open" link containing a CounterLabel span rendering "40".
+    for (const counter of doc.querySelectorAll('[data-component="CounterLabel"]')) {
+      const link = counter.closest('a, button')
+      if (!link) continue
+      const label = link.textContent.replace(/\s+/g, ' ').trim()
+      if (/^open/i.test(label)) {
+        const n = parseInt(counter.textContent.replace(/[^\d]/g, ''), 10)
+        if (Number.isFinite(n)) return n
+      }
+    }
+
+    // Strategy 2: classic "N Open" toggle.
     const anchors = [
       ...doc.querySelectorAll('a[data-ga-click*="Table state, Open"]'),
       ...doc.querySelectorAll('.table-list-header-toggle a'),
@@ -109,7 +130,7 @@
       if (match) return parseInt(match[1].replace(/,/g, ''), 10)
     }
 
-    // Strategy 2: React Issues UI embeds the search result count. Only trust it
+    // Strategy 3: React Issues UI embeds the search result count. Only trust it
     // when every occurrence agrees, so we never guess between ambiguous values.
     const distinct = [
       ...new Set(
