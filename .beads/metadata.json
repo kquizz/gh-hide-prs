@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "gh_hide_prs",
+  "project_id": "f782f64c-6ba3-48a1-8ad4-7e8c4cecfb9e"
+}
