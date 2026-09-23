@@ -6,10 +6,12 @@ const DEFAULTS = {
   hideLabels: ['hidden'],
   hideDrafts: false,
   hideAuthors: [],
+  hideDiffComments: true,
 }
 
 const enabledEl = document.getElementById('enabled')
 const hideDraftsEl = document.getElementById('hideDrafts')
+const hideDiffCommentsEl = document.getElementById('hideDiffComments')
 
 let state = { ...DEFAULTS }
 
@@ -102,10 +104,16 @@ hideDraftsEl.addEventListener('change', () => {
   save()
 })
 
+hideDiffCommentsEl.addEventListener('change', () => {
+  state.hideDiffComments = hideDiffCommentsEl.checked
+  save()
+})
+
 chrome.storage.sync.get(DEFAULTS, (stored) => {
   state = { ...DEFAULTS, ...stored }
   renderEnabled()
   hideDraftsEl.checked = state.hideDrafts
+  hideDiffCommentsEl.checked = state.hideDiffComments
   labels.render()
   authors.render()
 })

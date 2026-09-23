@@ -29,6 +29,7 @@ Click the extension's toolbar icon for a popup where you can:
   that label instead.
 - **Hide items from these authors** — add/remove GitHub usernames to exclude.
   Empty by default.
+- **Hide comment-only lines in PR diffs** — see below. On by default.
 
 Settings save automatically and sync across your Chrome profiles via
 `chrome.storage.sync`.
@@ -55,6 +56,27 @@ These seven are hardcoded (not currently configurable from the popup). If you
 collapse GitHub's sidebar to its icon-only rail, the shortcuts collapse right
 along with it — icon on the left, count next to it — instead of hiding the
 number or wrapping the label.
+
+## Hiding comment-only diff lines
+
+On a PR's **Files changed** tab (and on commit / compare diffs), added or
+removed lines that contain nothing but a code comment are hidden, so reworded
+comments don't bury the real changes. Blank lines that sit inside a run of
+comment changes are hidden with them.
+
+Each affected file gets a **N comment lines hidden · show** chip in its header.
+Click it to reveal that file's comment lines, dimmed, and click again to hide
+them.
+
+The comment syntax is picked from the file extension: `#` (Ruby, Python, shell,
+YAML, …), `//` plus `/* * */` (JS/TS, Go, Rust, Java, C, CSS, …), `--` (SQL,
+Lua), `<!--` (HTML/XML), `<%#` (ERB), and a few more. Unknown file types (like
+Markdown) are left alone. What it doesn't catch:
+
+- Trailing comments on a line of code (`foo() # note`). The code changed, so
+  the line stays.
+- Lines in the middle of a multi-line `/* */` block that don't start with `*`.
+  They're left visible rather than risk hiding real code.
 
 ## Install (for teammates)
 
@@ -100,6 +122,11 @@ Unpacked extensions don't auto-update. When there's a new version:
 - **Resilience** — a `MutationObserver` re-applies after Turbo/PJAX navigations
   and React re-renders. Writes are no-ops when values already match, so it
   never loops.
+- **Comment lines** — a separate content script (`diff-comments.js`) reads
+  each diff row's +/- state and text from GitHub's React diff view
+  (`table[aria-label^="Diff for:"]`) or the classic one (`.file` /
+  `.blob-code-*`). It marks comment-only rows with a data attribute that a CSS
+  rule hides. A `MutationObserver` re-applies as diffs lazy-load.
 - **Fail-safe** — if the background fetch fails (network or markup change), the
   extension leaves GitHub's own count untouched rather than showing a wrong
   number.
