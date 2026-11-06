@@ -48,6 +48,12 @@
       icon: '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>',
     },
     {
+      key: 'needsAiReview',
+      label: 'Needs AI Review',
+      query: 'is:open is:pr -label:hidden -label:"🤖 Ready for Human Review" -label:"🤖 Dev Work Needed" -label:"🤖 AI Reviewing" -label:"🤖 No AI Review" draft:false author:@me -review:approved -review:changes_requested',
+      icon: '<rect x="3" y="4.5" width="10" height="8" rx="1.5"/><line x1="8" y1="2" x2="8" y2="4.5"/><circle cx="6" cy="8.5" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="8.5" r="0.75" fill="currentColor" stroke="none"/>',
+    },
+    {
       key: 'needsReview',
       label: 'Needs Review',
       query: 'is:open is:pr -label:hidden label:"🤖 Ready for Human Review" draft:false -author:@me -review:approved -review:changes_requested',
