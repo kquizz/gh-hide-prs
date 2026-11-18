@@ -43,7 +43,7 @@
 </head>
 <body>
   <h1>GitHub Hidden-PR Filter</h1>
-  <p class="sub">Hides items from the Pull requests &amp; Issues tabs on any GitHub repo.</p>
+  <p class="sub">Hides items from the Pull requests &amp; Issues tabs on the GitHub repos you choose.</p>
 
   <div class="row">
     <input type="checkbox" id="enabled" />
@@ -53,6 +53,16 @@
   <hr />
 
   <div class="dependent">
+    <p class="section-title" style="margin-top: 0;">Only on these repos</p>
+    <p class="sub" style="margin: -4px 0 8px;"><code>owner/repo</code> or just a repo name. Empty = every repo.</p>
+    <div class="chips" id="repos"></div>
+    <div class="add">
+      <input type="text" id="repoInput" placeholder="owner/repo or repo name" aria-label="repo" />
+      <button id="addRepo" type="button">Add</button>
+    </div>
+
+    <hr />
+
     <div class="row">
       <input type="checkbox" id="hideDrafts" />
       <label for="hideDrafts">Hide draft PRs</label>

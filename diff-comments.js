@@ -8,7 +8,11 @@
 (() => {
   'use strict'
 
-  const DEFAULTS = { enabled: true, hideDiffComments: true }
+  const DEFAULTS = {
+    enabled: true,
+    hideDiffComments: true,
+    repos: ['optimumenergyco/tesla-site', 'optimumenergyco/core-ui'],
+  }
 
   // Row / file-container attributes we set. CSS keys off them, so revealing a
   // file is just flipping one attribute.
@@ -50,6 +54,16 @@
   const BLOCK_RE = /^(\/\*|\*\/|\*(\s|\/|$))/
 
   let settings = { ...DEFAULTS }
+
+  // Allowlist match (case-insensitive). "owner/repo" entries match exactly; a
+  // bare name matches that repo under any owner. Empty list = every repo.
+  function repoAllowed(owner, repo) {
+    const list = (settings.repos || []).map((r) => String(r).trim().toLowerCase()).filter(Boolean)
+    if (!list.length) return true
+    const full = `${owner}/${repo}`.toLowerCase()
+    const name = String(repo).toLowerCase()
+    return list.some((e) => (e.includes('/') ? e === full : e === name))
+  }
 
   function langKey(path) {
     const name = path.split('/').pop().toLowerCase()
@@ -190,8 +204,13 @@
     return /^\/[^/]+\/[^/]+\/(pull\/\d+\/(files|changes)|compare\/|commit\/)/.test(location.pathname)
   }
 
+  function pathAllowed() {
+    const [owner, repo] = location.pathname.split('/').filter(Boolean)
+    return !!repo && repoAllowed(owner, repo)
+  }
+
   function apply() {
-    if (!settings.enabled || !settings.hideDiffComments || !onDiffPage()) {
+    if (!settings.enabled || !settings.hideDiffComments || !onDiffPage() || !pathAllowed()) {
       clearAll()
       return
     }

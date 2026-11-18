@@ -1,5 +1,5 @@
 // GitHub Hidden-PR Filter
-// On any GitHub repo, point the "Pull requests" and "Issues" tabs at a filter
+// On the allowlisted GitHub repos, point the "Pull requests" and "Issues" tabs at a filter
 // that hides items by label, author, or (PRs only) draft status, and replace
 // each count badge with the accurate filtered count plus a shown/hidden
 // tooltip. On the Pull requests list, also injects a few hardcoded query
@@ -16,6 +16,7 @@
     hideLabels: ['hidden'],
     hideDrafts: false,
     hideAuthors: [],
+    repos: ['optimumenergyco/tesla-site', 'optimumenergyco/core-ui'],
   }
 
   // Hardcoded PR-tab query shortcuts injected into the Pull requests sidebar.
@@ -46,6 +47,12 @@
       label: 'Ready',
       query: null,
       icon: '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>',
+    },
+    {
+      key: 'needsAiReview',
+      label: 'Needs AI Review',
+      query: 'is:open is:pr -label:hidden -label:"🤖 Ready for Human Review" -label:"🤖 Dev Work Needed" -label:"🤖 AI Reviewing" -label:"🤖 No AI Review" draft:false author:@me -review:approved -review:changes_requested',
+      icon: '<rect x="3" y="4.5" width="10" height="8" rx="1.5"/><line x1="8" y1="2" x2="8" y2="4.5"/><circle cx="6" cy="8.5" r="0.75" fill="currentColor" stroke="none"/><circle cx="10" cy="8.5" r="0.75" fill="currentColor" stroke="none"/>',
     },
     {
       key: 'needsReview',
@@ -103,6 +110,16 @@
   // Native values captured before we touch them, so we can restore on disable.
   const nativeHref = new WeakMap()  // anchor -> original href
   const nativeBadge = new WeakMap() // badge  -> { text, title }
+
+  // Allowlist match (case-insensitive). "owner/repo" entries match exactly; a
+  // bare name matches that repo under any owner. Empty list = every repo.
+  function repoAllowed(owner, repo) {
+    const list = (settings.repos || []).map((r) => String(r).trim().toLowerCase()).filter(Boolean)
+    if (!list.length) return true
+    const full = `${owner}/${repo}`.toLowerCase()
+    const name = String(repo).toLowerCase()
+    return list.some((e) => (e.includes('/') ? e === full : e === name))
+  }
 
   function currentRepo() {
     const parts = location.pathname.split('/').filter(Boolean)
@@ -364,7 +381,7 @@
   // existing nodes and only touching the DOM when a value actually changed —
   // otherwise our own writes would re-trigger the MutationObserver forever.
   function renderSidebar(owner, repo) {
-    if (!settings.enabled) {
+    if (!settings.enabled || !repoAllowed(owner, repo)) {
       clearSidebar()
       return
     }
@@ -404,11 +421,12 @@
   function apply() {
     const repo = currentRepo()
     if (!repo) return
+    const active = settings.enabled && repoAllowed(repo.owner, repo.repo)
 
     for (const tab of TABS) {
       const el = findTab(repo.owner, repo.repo, tab.seg)
       if (!el) continue
-      if (settings.enabled) applyTab(repo.owner, repo.repo, tab, el)
+      if (active) applyTab(repo.owner, repo.repo, tab, el)
       else restoreTab(el)
     }
 

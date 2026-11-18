@@ -7,6 +7,7 @@ const DEFAULTS = {
   hideDrafts: false,
   hideAuthors: [],
   hideDiffComments: true,
+  repos: ['optimumenergyco/tesla-site', 'optimumenergyco/core-ui'],
 }
 
 const enabledEl = document.getElementById('enabled')
@@ -25,7 +26,7 @@ function renderEnabled() {
 }
 
 // A reusable chip-list editor bound to one array field in `state`.
-function makeListEditor({ key, containerId, inputId, buttonId, emptyText }) {
+function makeListEditor({ key, containerId, inputId, buttonId, emptyText, normalize }) {
   const container = document.getElementById(containerId)
   const input = document.getElementById(inputId)
   const button = document.getElementById(buttonId)
@@ -59,7 +60,7 @@ function makeListEditor({ key, containerId, inputId, buttonId, emptyText }) {
   }
 
   function add() {
-    const value = input.value.trim()
+    const value = normalize ? normalize(input.value) : input.value.trim()
     input.value = ''
     input.focus()
     if (!value) return
@@ -93,6 +94,23 @@ const authors = makeListEditor({
   emptyText: 'No authors — nothing is hidden by author.',
 })
 
+// Accept a pasted GitHub URL (https://github.com/owner/repo/pulls) and reduce
+// it to owner/repo; anything else is just trimmed.
+function normalizeRepo(raw) {
+  const value = raw.trim()
+  const m = value.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/\s]+)\/([^/\s?#]+)/i)
+  return m ? `${m[1]}/${m[2].replace(/\.git$/i, '')}` : value
+}
+
+const repos = makeListEditor({
+  key: 'repos',
+  containerId: 'repos',
+  inputId: 'repoInput',
+  buttonId: 'addRepo',
+  emptyText: 'No repos — active on every repo.',
+  normalize: normalizeRepo,
+})
+
 enabledEl.addEventListener('change', () => {
   state.enabled = enabledEl.checked
   renderEnabled()
@@ -116,4 +134,5 @@ chrome.storage.sync.get(DEFAULTS, (stored) => {
   hideDiffCommentsEl.checked = state.hideDiffComments
   labels.render()
   authors.render()
+  repos.render()
 })
