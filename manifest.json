@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GitHub Hidden-PR Filter",
-  "version": "1.3.0",
-  "description": "Hides PRs and issues from a repo's Pull requests / Issues tabs (link + count) by label, author, or draft status, and hides comment-only lines in PR diffs. Works on any GitHub repo.",
+  "version": "1.4.0",
+  "description": "Hides PRs and issues from a repo's Pull requests / Issues tabs (link + count) by label, author, or draft status, and hides comment-only lines in PR diffs. Runs only on the repos you choose (default: tesla-site and core-ui).",
   "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",

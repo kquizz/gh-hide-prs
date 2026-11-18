@@ -4,7 +4,8 @@ A tiny Chrome (Manifest V3) extension that de-clutters GitHub's **Pull requests*
 and **Issues** tabs by hiding items you don't want to see — by label, author, or
 draft status.
 
-Works on **any GitHub repo**. For each tab it:
+Runs only on the repos you choose (by default `optimumenergyco/tesla-site` and
+`optimumenergyco/core-ui`). On those repos, for each tab it:
 
 1. **Rewrites the link** so clicking the tab lands on the filtered view
    (e.g. `?q=is:open+is:pr+-label:hidden`) instead of the default list.
@@ -22,6 +23,13 @@ Click the extension's toolbar icon for a popup where you can:
 
 - **Enabled** — turn the whole thing on/off. Disabling instantly restores
   GitHub's native link and count (no page reload needed).
+- **Only on these repos** — the allowlist of repos the extension acts on. An
+  entry like `owner/repo` matches exactly that repo; a bare name like `core-ui`
+  matches that repo under any owner (case-insensitive). You can paste a GitHub
+  URL and it's reduced to `owner/repo`. Empty = every repo. Defaults to
+  `optimumenergyco/tesla-site` and `optimumenergyco/core-ui`. On any other repo
+  the extension does nothing: native tab links and counts, no sidebar
+  shortcuts, no diff comment hiding.
 - **Hide draft PRs** — also exclude drafts (adds `draft:false`; PRs only).
 - **Hide items with these labels** — add/remove any labels to exclude. Defaults
   to `hidden`; add as many as you like (labels with spaces are fine). Prefix a

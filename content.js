@@ -1,5 +1,5 @@
 // GitHub Hidden-PR Filter
-// On any GitHub repo, point the "Pull requests" and "Issues" tabs at a filter
+// On the allowlisted GitHub repos, point the "Pull requests" and "Issues" tabs at a filter
 // that hides items by label, author, or (PRs only) draft status, and replace
 // each count badge with the accurate filtered count plus a shown/hidden
 // tooltip. On the Pull requests list, also injects a few hardcoded query
@@ -16,6 +16,7 @@
     hideLabels: ['hidden'],
     hideDrafts: false,
     hideAuthors: [],
+    repos: ['optimumenergyco/tesla-site', 'optimumenergyco/core-ui'],
   }
 
   // Hardcoded PR-tab query shortcuts injected into the Pull requests sidebar.
@@ -109,6 +110,16 @@
   // Native values captured before we touch them, so we can restore on disable.
   const nativeHref = new WeakMap()  // anchor -> original href
   const nativeBadge = new WeakMap() // badge  -> { text, title }
+
+  // Allowlist match (case-insensitive). "owner/repo" entries match exactly; a
+  // bare name matches that repo under any owner. Empty list = every repo.
+  function repoAllowed(owner, repo) {
+    const list = (settings.repos || []).map((r) => String(r).trim().toLowerCase()).filter(Boolean)
+    if (!list.length) return true
+    const full = `${owner}/${repo}`.toLowerCase()
+    const name = String(repo).toLowerCase()
+    return list.some((e) => (e.includes('/') ? e === full : e === name))
+  }
 
   function currentRepo() {
     const parts = location.pathname.split('/').filter(Boolean)
@@ -370,7 +381,7 @@
   // existing nodes and only touching the DOM when a value actually changed —
   // otherwise our own writes would re-trigger the MutationObserver forever.
   function renderSidebar(owner, repo) {
-    if (!settings.enabled) {
+    if (!settings.enabled || !repoAllowed(owner, repo)) {
       clearSidebar()
       return
     }
@@ -410,11 +421,12 @@
   function apply() {
     const repo = currentRepo()
     if (!repo) return
+    const active = settings.enabled && repoAllowed(repo.owner, repo.repo)
 
     for (const tab of TABS) {
       const el = findTab(repo.owner, repo.repo, tab.seg)
       if (!el) continue
-      if (settings.enabled) applyTab(repo.owner, repo.repo, tab, el)
+      if (active) applyTab(repo.owner, repo.repo, tab, el)
       else restoreTab(el)
     }
 
